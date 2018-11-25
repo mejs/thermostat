@@ -1,0 +1,2 @@
+*/1 * * * * cd /home/pi/thermostat/ && sh /home/pi/thermostat/keepalive.sh
+
