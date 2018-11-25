@@ -26,7 +26,7 @@
         "tempScale": "metric"
     },
     "thermostat": {
-        "coolPin": 18,
+        "coolPin": 24,
         "fanPin": 25,
         "heatPin": 23,
         "maxTemp": 30.0,
@@ -38,9 +38,9 @@
         "tempStep": 0.5
     },
     "weather": {
-        "appkey": "your openweathermap.org appkey",
+        "appkey": "b3d9cf5790e67424a8853e0190124e75",
         "forecastRefreshInterval": 60,
-        "location": "Barrie,ca",
+        "location": "Brooklyn, NY",
         "weatherExceptionInterval": 5,
         "weatherRefreshInterval": 10,
 		"URLtimeout": 5
@@ -50,3 +50,4 @@
         "port": 80
     }
 }
+

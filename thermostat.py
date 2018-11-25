@@ -91,7 +91,9 @@ except ImportError:
 #                                                                            #
 ##############################################################################
 
-from w1thermsensor import W1ThermSensor
+#from w1thermsensor import W1ThermSensor
+import smbus
+import time
 
 
 ##############################################################################
@@ -382,7 +384,7 @@ scaleUnits 	  	  = "c" if tempScale == "metric" else "f"
 precipUnits	      = " mm" if tempScale == "metric" else '"'
 precipFactor	  = 1.0 if tempScale == "metric" else 0.0393701
 precipRound 	  = 0 if tempScale == "metric" else 1
-sensorUnits		  = W1ThermSensor.DEGREES_C if tempScale == "metric" else W1ThermSensor.DEGREES_F
+#sensorUnits		  = W1ThermSensor.DEGREES_C if tempScale == "metric" else W1ThermSensor.DEGREES_F
 windFactor		  = 3.6 if tempScale == "metric" else 1.0
 windUnits		  = " km/h" if tempScale == "metric" else " mph"
 
@@ -392,8 +394,8 @@ currentTemp       = 22.0 if tempScale == "metric" else 72.0
 priorCorrected    = -100.0
 setTemp           = 22.0 if not( state.exists( "state" ) ) else state.get( "state" )[ "setTemp" ]
 
-tempHysteresis    = 0.5  if not( settings.exists( "thermostat" ) ) else settings.get( "thermostat" )[ "tempHysteresis" ]
-
+#tempHysteresis    = 0.5  if not( settings.exists( "thermostat" ) ) else settings.get( "thermostat" )[ "tempHysteresis" ]
+tempHysteresis    = 1
 tempCheckInterval = 3    if not( settings.exists( "thermostat" ) ) else settings.get( "thermostat" )[ "tempCheckInterval" ]
 
 minUIEnabled 	  = 0    if not( settings.exists( "thermostat" ) ) else settings.get( "thermostat" )[ "minUIEnabled" ]
@@ -404,7 +406,7 @@ log( LOG_LEVEL_INFO, CHILD_DEVICE_NODE, MSG_SUBTYPE_CUSTOM + "/settings/temperat
 log( LOG_LEVEL_INFO, CHILD_DEVICE_NODE, MSG_SUBTYPE_CUSTOM + "/settings/temperature/scaleUnits", str( scaleUnits ), timestamp=False )
 log( LOG_LEVEL_INFO, CHILD_DEVICE_NODE, MSG_SUBTYPE_CUSTOM + "/settings/temperature/precipUnits", str( precipUnits ), timestamp=False )
 log( LOG_LEVEL_INFO, CHILD_DEVICE_NODE, MSG_SUBTYPE_CUSTOM + "/settings/temperature/precipFactor", str( precipFactor ), timestamp=False )
-log( LOG_LEVEL_INFO, CHILD_DEVICE_NODE, MSG_SUBTYPE_CUSTOM + "/settings/temperature/sensorUnits", str( sensorUnits ), timestamp=False )
+#log( LOG_LEVEL_INFO, CHILD_DEVICE_NODE, MSG_SUBTYPE_CUSTOM + "/settings/temperature/sensorUnits", str( sensorUnits ), timestamp=False )
 log( LOG_LEVEL_INFO, CHILD_DEVICE_NODE, MSG_SUBTYPE_CUSTOM + "/settings/temperature/windFactor", str( windFactor ), timestamp=False )
 log( LOG_LEVEL_INFO, CHILD_DEVICE_NODE, MSG_SUBTYPE_CUSTOM + "/settings/temperature/windUnits", str( windUnits ), timestamp=False )
 log( LOG_LEVEL_INFO, CHILD_DEVICE_NODE, MSG_SUBTYPE_CUSTOM + "/settings/temperature/currentTemp", str( currentTemp ), timestamp=False )
@@ -446,7 +448,7 @@ log( LOG_LEVEL_INFO, CHILD_DEVICE_NODE, MSG_SUBTYPE_CUSTOM + "/settings/UISlider
 log( LOG_LEVEL_INFO, CHILD_DEVICE_NODE, MSG_SUBTYPE_CUSTOM + "/settings/UISlider/tempStep", str( tempStep ), timestamp=False )
 
 try:
-	tempSensor = W1ThermSensor()
+	tempSensor = 1
 except:
 	tempSensor = None
 
@@ -879,9 +881,15 @@ def check_sensor_temp( dt ):
 	with thermostatLock:
 		global currentTemp, priorCorrected
 		global tempSensor
-		
-		if tempSensor is not None:
-			rawTemp = tempSensor.get_temperature( sensorUnits )
+                if tempSensor is not None:
+			bus = smbus.SMBus(1)
+			time.sleep(0.3)
+			bus.write_byte(0x40, 0xF3)
+                        time.sleep(0.3)
+			data0 = bus.read_byte(0x40)
+			data1 = bus.read_byte(0x40)
+#			rawTemp = tempSensor.get_temperature( sensorUnits )
+			rawTemp = ((data0 * 256 + data1) * 175.72 / 65536.0) - 46.85
 			correctedTemp = ( ( ( rawTemp - freezingMeasured ) * referenceRange ) / measuredRange ) + freezingPoint
 			currentTemp = round( correctedTemp, 1 )
 			log( LOG_LEVEL_DEBUG, CHILD_DEVICE_TEMP, MSG_SUBTYPE_CUSTOM + "/raw", str( rawTemp ) )
