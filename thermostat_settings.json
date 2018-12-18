@@ -30,7 +30,7 @@
         "fanPin": 25,
         "heatPin": 23,
         "maxTemp": 30.0,
-        "minTemp": 15.0,
+        "minTemp": 10.0,
         "minUIEnabled": 1,
         "minUITimeout": 60,
         "tempCheckInterval": 3,
